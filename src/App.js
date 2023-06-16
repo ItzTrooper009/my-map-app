@@ -15,17 +15,46 @@ import {
   LayerGroup,
   Tooltip,
   GeoJSON,
+  Pane,
 } from "react-leaflet";
 import L, { icon } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "./App.css";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Button } from "@mui/material";
+
+const innerBounds = [
+  [110, 209],
+  [303, 277],
+];
+const outerBounds = [
+  [167, 0],
+  [250, 716],
+];
+const center = [206.5, 243];
+
+const redColor = { color: "red" };
+const whiteColor = { color: "white" };
+
 const customIcon = L.divIcon({
   iconUrl: "./icon.png",
   iconSize: [10, 10], // size of the icon
   iconAnchor: [5, 5], // point of the icon which will correspond to marker's location
 });
-
+const panes = {
+  outer: [
+    [167, 165],
+    [250, 330],
+  ],
+  inner: [
+    [140, 209],
+    [283, 277],
+  ],
+};
+const bounds = [
+  [0, 0],
+  [390, 716],
+];
 function App() {
   const mapURL = "./map.png";
   const icon2 = L.icon({
@@ -33,10 +62,7 @@ function App() {
     iconSize: [50, 50], // size of the icon
     iconAnchor: [25, 25], // point of the icon which will correspond to marker's location
   });
-  const bounds = [
-    [0, 0],
-    [390, 716],
-  ];
+
   const geoJson = {
     type: "FeatureCollection",
     features: [
@@ -130,142 +156,168 @@ function App() {
   console.log(geoJson.features);
   // const map = useMap()
   return (
-    <MapContainer
-      center={[192, 358]}
-      zoom={0}
-      maxZoom={3}
-      minZoom={-2}
-      crs={L.CRS.Simple}
-      scrollWheelZoom={true}
-      style={{ height: "100vh", width: "100vw" }}
-      maxBounds={[
-        [-100, -100],
-        [490, 816],
-      ]}
-    >
-      {/* <TileLayer
-        attribution='&copy; <a href="https://www.anscer.com">Anscer</a> contributors'
-        url={mapURL}
-        className="tile-layer"
-      /> */}
-
-      <ImageOverlay url="/map.png" bounds={bounds} />
-
-      <LayersControl position="topleft">
-        <LayersControl.Overlay checked name="Marker">
-          <LayerGroup>
-            <Marker
-              draggable={false}
-              icon={customIcon}
-              position={[192, 358]}
-              eventHandlers={{ click: () => console.log("Marker 1 clicked") }}
-            >
-              <Popup>Marker 1</Popup>
-            </Marker>
-            <Marker
-              draggable={true}
-              // ref={icon2}
-              icon={icon2}
-              position={[230, 358]}
-              eventHandlers={{ click: () => console.log("Marker 2 clicked") }}
-            >
-              <Popup>Marker 2</Popup>
-            </Marker>
-          </LayerGroup>
-        </LayersControl.Overlay>
-
-        <LayersControl.Overlay name="Circle">
-          <Circle
-            center={[250.5, 230.5]}
-            radius={10}
-            color="red"
-            fillColor="yellow"
-            eventHandlers={{
-              click: () => console.log("Circle marker clicked"),
-            }}
-          />
-        </LayersControl.Overlay>
-
-        <LayersControl.Overlay name="Polyline">
-          <LayerGroup>
-            <Polyline
-              pathOptions={{ color: "blue" }}
-              positions={vectorLayer.polyline}
-              eventHandlers={{ click: () => console.log("Polyline clicked") }}
-            />
-
-            <Polyline
-              pathOptions={{ color: "red" }}
-              positions={vectorLayer.multiPolyline}
+    <div>
+      <MapContainer
+        center={center}
+        zoom={0}
+        maxZoom={3}
+        minZoom={-2}
+        crs={L.CRS.Simple}
+        scrollWheelZoom={true}
+        style={{ height: "100vh", width: "100vw" }}
+        maxBounds={[
+          [-100, -100],
+          [490, 816],
+        ]}
+      >
+        {/* <TileLayer
+          attribution='&copy; <a href="https://www.anscer.com">Anscer</a> contributors'
+          url={mapURL}
+          className="tile-layer"
+        /> */}
+        <ImageOverlay url="/map.png" bounds={bounds} />
+        <LayersControl position="topleft">
+          <LayersControl.Overlay name="Marker">
+            <LayerGroup>
+              <Marker
+                draggable={false}
+                icon={customIcon}
+                position={[192, 358]}
+                eventHandlers={{ click: () => console.log("Marker 1 clicked") }}
+              >
+                <Popup>Marker 1</Popup>
+              </Marker>
+              <Marker
+                draggable={true}
+                // ref={icon2}
+                icon={icon2}
+                position={[230, 358]}
+                eventHandlers={{ click: () => console.log("Marker 2 clicked") }}
+              >
+                <Popup>Marker 2</Popup>
+              </Marker>
+            </LayerGroup>
+          </LayersControl.Overlay>
+          <LayersControl.Overlay name="Circle">
+            <Circle
+              center={[250.5, 230.5]}
+              radius={10}
+              color="red"
+              fillColor="yellow"
               eventHandlers={{
-                click: () => console.log("Multipolyline clicked"),
+                click: () => console.log("Circle marker clicked"),
               }}
             />
-          </LayerGroup>
-        </LayersControl.Overlay>
-        <LayersControl.Overlay name="Polygon">
-          <LayerGroup>
-            <Polygon
-              pathOptions={{ color: "green" }}
-              positions={vectorLayer.polygon}
-              eventHandlers={{ click: () => console.log("Polygon clicked") }}
-            />
-            <Polygon
-              pathOptions={{ color: "blue" }}
-              positions={vectorLayer.multiPolygon}
-              eventHandlers={{ click: () => console.log("M Polygon clicked") }}
-            />
-          </LayerGroup>
-        </LayersControl.Overlay>
-        <LayersControl.Overlay checked name="Rectangle">
-          <Rectangle
-            pathOptions={{ color: "red" }}
-            bounds={vectorLayer.rectangle}
-            eventHandlers={{ click: () => console.log("rectangle clicked") }}
-            stroke={true}
-            weight={1}
-          >
-            <Tooltip
-              permanent
-              offset={[20, -20]}
-              opacity={0.9}
-              direction="bottom"
+          </LayersControl.Overlay>
+          <LayersControl.Overlay name="Polyline">
+            <LayerGroup>
+              <Polyline
+                pathOptions={{ color: "blue" }}
+                positions={vectorLayer.polyline}
+                eventHandlers={{ click: () => console.log("Polyline clicked") }}
+              />
+              <Polyline
+                pathOptions={{ color: "red" }}
+                positions={vectorLayer.multiPolyline}
+                eventHandlers={{
+                  click: () => console.log("Multipolyline clicked"),
+                }}
+              />
+            </LayerGroup>
+          </LayersControl.Overlay>
+          <LayersControl.Overlay name="Polygon">
+            <LayerGroup>
+              <Polygon
+                pathOptions={{ color: "green" }}
+                positions={vectorLayer.polygon}
+                eventHandlers={{ click: () => console.log("Polygon clicked") }}
+              />
+              <Polygon
+                pathOptions={{ color: "blue" }}
+                positions={vectorLayer.multiPolygon}
+                eventHandlers={{
+                  click: () => console.log("M Polygon clicked"),
+                }}
+              />
+            </LayerGroup>
+          </LayersControl.Overlay>
+          <LayersControl.Overlay name="Rectangle">
+            <Rectangle
+              pathOptions={{ color: "red" }}
+              bounds={vectorLayer.rectangle}
+              eventHandlers={{ click: () => console.log("rectangle clicked") }}
+              stroke={true}
+              weight={1}
             >
-              Rectangle
-            </Tooltip>
-          </Rectangle>
-        </LayersControl.Overlay>
-        <LayersControl.Overlay checked name="SVG Overlay">
-          <SVGOverlay
-            // zIndex={202}
-            attributes={{ stroke: "black" }}
-            bounds={[
-              [25, 51],
-              [100, 250],
-            ]}
-          >
-            <rect x="0" y="0" width="100%" height="100%" fill="lightblue" />
-            <circle r="5" cx="50" cy="20" fill="red" />
-            <text x="50%" y="50%" stroke="black">
-              text
-            </text>
-          </SVGOverlay>
-        </LayersControl.Overlay>
-
-        <LayersControl.Overlay name="GeoJSON Data">
-          <LayerGroup>
-            <GeoJSON
-              data={geoJson.features.find(
-                (m) => m.geometry.type === "LineString"
-              )}
-              style={{ color: "red", weight: 3 }}
-            />
-          </LayerGroup>
-        </LayersControl.Overlay>
-      </LayersControl>
-
-      <Geometory />
-    </MapContainer>
+              <Tooltip
+                permanent
+                offset={[20, -20]}
+                opacity={0.9}
+                direction="bottom"
+              >
+                Rectangle
+              </Tooltip>
+            </Rectangle>
+          </LayersControl.Overlay>
+          <LayersControl.Overlay name="SVG Overlay">
+            <SVGOverlay
+              // zIndex={202}
+              attributes={{ stroke: "black" }}
+              bounds={[
+                [25, 51],
+                [100, 250],
+              ]}
+            >
+              <rect x="0" y="0" width="100%" height="100%" fill="lightblue" />
+              <circle r="5" cx="50" cy="20" fill="red" />
+              <text x="50%" y="50%" stroke="black">
+                text
+              </text>
+            </SVGOverlay>
+          </LayersControl.Overlay>
+          <LayersControl.Overlay name="GeoJSON Data">
+            <LayerGroup>
+              <GeoJSON
+                data={geoJson.features.find(
+                  (m) => m.geometry.type === "LineString"
+                )}
+                style={{ color: "red", weight: 3 }}
+              />
+            </LayerGroup>
+          </LayersControl.Overlay>
+          <LayersControl.Overlay name="Panes">
+            <LayerGroup>
+              <BlinkingPane />
+              <Pane className="red-rect" style={{ zIndex: 400 }}>
+                <Rectangle
+                  bounds={panes.outer}
+                  pathOptions={{ color: "red" }}
+                  stroke={true}
+                  weight={5}
+                >
+                  {" "}
+                  <Tooltip sticky>Red Rectangle </Tooltip>
+                </Rectangle>
+                <Pane className="cyan-rect">
+                  <Rectangle
+                    bounds={panes.inner}
+                    pathOptions={{ color: "cyan" }}
+                    stroke={true}
+                    weight={5}
+                  >
+                    {" "}
+                    <Tooltip sticky>Cyan Rectangle </Tooltip>
+                  </Rectangle>
+                </Pane>
+              </Pane>
+            </LayerGroup>
+          </LayersControl.Overlay>
+        </LayersControl>
+        {/* <Geometory /> */}
+        <RectangleBounds />
+        <ResetCenter />
+      </MapContainer>
+    </div>
   );
 }
 
@@ -291,4 +343,114 @@ const Geometory = () => {
   //   //   },
   //   // });
 };
+function BlinkingPane() {
+  const [render, setRender] = useState(true);
+  const timerRef = useRef();
+  useEffect(() => {
+    timerRef.current = setInterval(() => {
+      setRender((r) => !r);
+    }, 2000);
+    return () => {
+      clearInterval(timerRef.current);
+    };
+  }, []);
+
+  return render ? (
+    <Pane name="blue-rectangle" style={{ zIndex: 500 }}>
+      <Rectangle
+        bounds={panes.outer}
+        pathOptions={{ color: "blue" }}
+        stroke={true}
+        weight={5}
+      >
+        <Tooltip sticky>Blue Rectangle </Tooltip>
+      </Rectangle>
+    </Pane>
+  ) : null;
+}
+
+const RectangleBounds = () => {
+  const [bounds, setBounds] = useState(outerBounds);
+  const map = useMap();
+  console.log("Map: ", map.getCenter());
+
+  const innerBoundHandler = useMemo(
+    () => ({
+      click() {
+        setBounds(innerBounds);
+        map.fitBounds(innerBounds);
+      },
+    }),
+    [map]
+  );
+  const outerBoundHandler = useMemo(
+    () => ({
+      click() {
+        setBounds(outerBounds);
+        map.fitBounds(outerBounds);
+      },
+    }),
+    [map]
+  );
+  return (
+    <>
+      <Rectangle
+        bounds={outerBounds}
+        eventHandlers={outerBoundHandler}
+        pathOptions={
+          bounds === outerBounds ? { color: "red" } : { color: "cyan" }
+        }
+      >
+        <Tooltip sticky>
+          Click to change Map Bounds to <b>Big</b> rect
+        </Tooltip>
+      </Rectangle>
+      <Rectangle
+        bounds={innerBounds}
+        eventHandlers={innerBoundHandler}
+        pathOptions={
+          bounds === innerBounds ? { color: "red" } : { color: "cyan" }
+        }
+      >
+        <Tooltip sticky>
+          Click to change Map Bounds to <b>Small</b> rect
+        </Tooltip>
+      </Rectangle>
+      ; ;
+    </>
+  );
+};
+
+const ResetCenter = () => {
+  const map = useMap();
+  console.log("Map: ", map);
+  useEffect(() => {
+    if (!map) return;
+
+    L.Control.Reset = L.Control.extend({
+      onAdd: function (map) {
+        this._map = map;
+        const button = (this.button = L.DomUtil.create("button", "resetBtn"));
+        // button.innerText = "Reset";
+
+        L.DomEvent.on(this.button, "click", this.handleReset, this);
+
+        return button;
+      },
+      handleReset: function () {
+        console.log("Reset Called", this);
+        this._map.fitBounds(bounds);
+        // this._map.setView(bounds);
+      },
+      onRemove: function (map) {
+        L.DomEvent.off(this.button, "click", this.handleReset, this);
+      },
+    });
+    const reset = new L.Control.Reset({ position: "topright" });
+
+    reset.addTo(map);
+    return () => reset.remove();
+  }, []);
+};
+
 export default App;
