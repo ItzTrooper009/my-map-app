@@ -21,7 +21,8 @@ import L, { icon } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "./App.css";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Button } from "@mui/material";
+import { Button, IconButton } from "@mui/material";
+import ZoomInMapIcon from "@mui/icons-material/ZoomInMap";
 
 const innerBounds = [
   [110, 209],
@@ -312,15 +313,40 @@ function App() {
               </Pane>
             </LayerGroup>
           </LayersControl.Overlay>
+          <LayersControl.Overlay name="Rectangle Bounds">
+            <LayerGroup>
+              <RectangleBounds />
+            </LayerGroup>
+          </LayersControl.Overlay>
         </LayersControl>
         {/* <Geometory /> */}
-        <RectangleBounds />
-        <ResetCenter />
+        {/* <ResetCenter /> */}
+        <ResetCenterButton />
       </MapContainer>
     </div>
   );
 }
 
+const ResetCenterButton = () => {
+  const map = useMap();
+  const handleReset = () => {
+    map.fitBounds(bounds);
+    // console.log("Map is: ", map);
+  };
+  return (
+    <div className="top-right border-blue">
+      <IconButton
+        aria-level="Reset"
+        onClick={handleReset}
+        color="primary"
+        size="small"
+      >
+        {" "}
+        <ZoomInMapIcon />{" "}
+      </IconButton>
+    </div>
+  );
+};
 const Geometory = () => {
   const polyRef = useRef();
   const map = useMap();
